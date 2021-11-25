@@ -6,8 +6,9 @@ from subprocess import run
 import cv2
 import depthai as dai
 import platform
-
 import numpy as np
+from myutils import ResultData
+import pickle
 
 from depthai_helpers.arg_manager import parseArgs
 from depthai_helpers.config_manager import ConfigManager, DEPTHAI_ZOO, DEPTHAI_VIDEOS
@@ -22,10 +23,10 @@ SIGMA_MAX = int(os.getenv("SIGMA_MAX", 250))
 LRCT_MIN = int(os.getenv("LRCT_MIN", 0))
 LRCT_MAX = int(os.getenv("LRCT_MAX", 10))
 
+
 def run_all():
 
     xmax, xmin, ymax, ymin = 0, 0, 0, 0
-
     print('Using depthai module from: ', dai.__file__)
     print('Depthai version installed: ', dai.__version__)
     if platform.machine() not in ['armv6l', 'aarch64']:
@@ -34,11 +35,7 @@ def run_all():
     conf = ConfigManager(parseArgs())
     conf.linuxCheckApplyUsbRules()
     if not conf.useCamera:
-        if str(conf.args.video).startswith('https'):
-            conf.args.video = downloadYTVideo(conf.args.video, DEPTHAI_VIDEOS)
-            print("Youtube video downloaded.")
-        if not Path(conf.args.video).exists():
-            raise ValueError("Path {} does not exists!".format(conf.args.video))
+        pass
 
     callbacks = loadModule(conf.args.callback)
     rgbRes = conf.getRgbResolution()
@@ -100,7 +97,7 @@ def run_all():
             callbacks.onReport(data)
             print(','.join(map(str, data.values())), file=reportFile)
 
-
+# いる？
     class Trackbars:
         instances = {}
 
@@ -330,22 +327,22 @@ def run_all():
                     label_Text = nnManager.getLabelText(nnData[0].label)
                     label = nnData[0].label
                     confidence = nnData[0].confidence  """
-                    xmax = nnData[0].xmax
-                    xmin = nnData[0].xmin
-                    ymax = nnData[0].ymax
-                    ymin = nnData[0].ymin
                     """ spCor_x = nnData[0].spatialCoordinates.x
                     spCor_y = nnData[0].spatialCoordinates.y
                     spCor_z = nnData[0].spatialCoordinates.z """
-
-                    # 人検出ボックスの4点の座標をファイルに記述
-                    # data dir を作成
-                    os.makedirs("data",exist_ok=True)
-                    with open("./data/rec_pos.txt", 'w') as f:
-                        print(xmax, file=f)
-                        print(xmin, file=f)
-                        print(ymax, file=f)
-                        print(ymin, file=f)
+                    # 人物のbboxをpickleにして保存
+                    # data dir をつくっておく
+                    os.makedirs('data',exist_ok=True)
+                    with open("data/data.pickle",'wb') as f:
+                        result_data = ResultData()
+                        # objectの数だけresult_dataに保存
+                        for object_idx in range(len(nnData)):
+                            xmax = nnData[object_idx].xmax
+                            xmin = nnData[object_idx].xmin
+                            ymax = nnData[object_idx].ymax
+                            ymin = nnData[object_idx].ymin
+                            result_data.collect_bb(xmin, xmax, ymin, ymax)
+                        pickle.dump(result_data,f)
 
                 if conf.useCamera:
                     if conf.useNN:
