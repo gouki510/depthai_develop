@@ -5,11 +5,13 @@
   この方がbboxのラベルとか気にするとき便利かなと思いました。あとbinaryのほうが早いかなと思って  
 - depthai_demo.py のなかで　os.makedir("data")でdata folderを自動作成
 - multi objectsに対応
+#### 1126
+- labelの情報をResultDataにいれた。dic[label] = xmin,xmax,ymin,ymax
 ## Tasks
-- [ ] labelも考慮する(bboxが車か人か)
+- [x] labelも考慮する(bboxが車か人か)
 - [ ] objectsの速度も考慮する(加速度センサが必要か？)
 - [ ] ２つのカメラの視差を合わせる。(家で試した感じ隣に置いたらそんなに誤差なかった)
-- [ ] road_segmentationの方の出力の取得
+- [x] road_segmentationの方の出力の取得
 - [ ] fpsが全然違うからどうにかしたい。
 - [ ] できれば１つのスクリプトで実行したい。
 - [ ] ２つ以上のAIカメラは行ける？(USBハブが必要か)
