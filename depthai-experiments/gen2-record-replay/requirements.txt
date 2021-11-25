@@ -1,0 +1,5 @@
+opencv-python
+numpy
+depthai>=2.12.0.0
+blobconverter>=1.2.6
+rosbags>=0.9.7
