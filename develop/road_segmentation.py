@@ -4,7 +4,14 @@ import cv2
 import depthai as dai
 import numpy as np
 import pickle
-from depthai_sdk import PipelineManager, NNetManager, PreviewManager, Previews, FPSHandler, toTensorResult
+from depthai_sdk import (
+    PipelineManager,
+    NNetManager,
+    PreviewManager,
+    Previews,
+    FPSHandler,
+    toTensorResult,
+)
 
 from depthai_sdk import utils
 
@@ -13,6 +20,8 @@ import os
 nn_shape = 896, 512
 
 result_data = {}
+
+
 def decode(packet):
     data = np.squeeze(toTensorResult(packet)["L0317_ReWeight_SoftMax"])
     class_colors = [[0, 0, 0], [0, 255, 0], [255, 0, 0], [0, 0, 255]]
@@ -36,8 +45,12 @@ def run_all():
     nm = NNetManager(inputSize=nn_shape)
     pm.setNnManager(nm)
     pm.addNn(
-        nm.createNN(pm.pipeline, pm.nodes, blobconverter.from_zoo(name='road-segmentation-adas-0001', shaves=6)),
-        sync=True
+        nm.createNN(
+            pm.pipeline,
+            pm.nodes,
+            blobconverter.from_zoo(name="road-segmentation-adas-0001", shaves=6),
+        ),
+        sync=True,
     )
     fps = FPSHandler()
     pv = PreviewManager(display=[Previews.color.name], fpsHandler=fps)
@@ -49,31 +62,46 @@ def run_all():
 
         while True:
 
-            fps.tick('color')
+            fps.tick("color")
             pv.prepareFrames(blocking=True)
             frame = pv.get(Previews.color.name)
 
             road_decoded = decode(nm.outputQueue.get())
             draw(road_decoded, frame)
-            fps.drawFps(frame, 'color')
+            fps.drawFps(frame, "color")
 
             # pickleが空だとエラーがでるのでif分岐
-            if os.path.getsize('data/data.pickle') > 0:
+            if os.path.getsize("data/data.pickle") > 0:
                 # result_data の読み込み
-                with open("data/data.pickle",'rb') as f:
+                with open("data/data.pickle", "rb") as f:
                     result_data = pickle.load(f)
                     # 人検出ボックスの4点の座標をファイルから読み込む
-                    xmin,xmax,ymin,ymax = result_data.output_bb()
-                    for object_idx in range(len(xmin)):
-                        print("xmax:{}, xmin:{}, ymax:{}, ymin:{}".format(xmax[object_idx], xmin[object_idx], ymax[object_idx], ymin[object_idx]))
-                        #人検出ボックスの追加
-                        bbox = utils.frameNorm(nm._normFrame(frame), [xmin[object_idx], ymin[object_idx], xmax[object_idx], ymax[object_idx]])
-                        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0,255,0), 3)
-                #フレーム完成・描画
-            cv2.imshow('color', frame)
+                    output_dic = result_data.output_bb()
+                    for label in output_dic.keys():
+                        xmin, xmax, ymin, ymax = (
+                            output_dic[label][0],
+                            output_dic[label][1],
+                            output_dic[label][2],
+                            output_dic[label][3],
+                        )
+                        # print("label:{},xmax:{}, xmin:{}, ymax:{}, ymin:{}".format(label,xmin,xmax,ymin,ymax))
+                        # 人検出ボックスの追加
+                        bbox = utils.frameNorm(
+                            nm._normFrame(frame), [xmin, ymin, xmax, ymax]
+                        )
+                        cv2.rectangle(
+                            frame,
+                            (bbox[0], bbox[1]),
+                            (bbox[2], bbox[3]),
+                            (0, 255, 0),
+                            3,
+                        )
+                # フレーム完成・描画
+            cv2.imshow("color", frame)
 
-            if cv2.waitKey(1) == ord('q'):
+            if cv2.waitKey(1) == ord("q"):
                 break
+
 
 if __name__ == "__main__":
     while True:

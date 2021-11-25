@@ -1,22 +1,15 @@
 class ResultData:
-
     def __init__(self):
-        self.xmin= []
-        self.xmax = []
-        self.ymin = []
-        self.ymax = []
+        self.bboxs = {}
 
-    def collect_bb(self,xmin,xmax,ymin,ymax):
-        self.xmin.append(xmin)
-        self.xmax.append(xmax)
-        self.ymax.append(ymin)
-        self.ymin.append(ymax)
-    
+    def collect_bb(self, label, xmin, xmax, ymin, ymax):
+        self.bboxs[label] = [xmin, xmax, ymin, ymax]
+
     def output_bb(self):
-        return self.xmin,self.xmax,self.ymin,self.ymax
-    
+        return self.bboxs
+
     def is_detection(self):
-        if len(self.xmin)>0:
+        if len(self.bboxs) > 0:
             return True
         else:
             return False
