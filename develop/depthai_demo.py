@@ -452,6 +452,9 @@ def run_all():
                         # objectの数だけresult_dataに保存
                         for object_idx in range(len(nnData)):
                             label = nnManager.getLabelText(nnData[object_idx].label)
+                            # personが複数人になったときはperson+object_idx
+                            if label in result_data.bboxs.keys():
+                                label = label + str(object_idx)
                             xmax = nnData[object_idx].xmax
                             xmin = nnData[object_idx].xmin
                             ymax = nnData[object_idx].ymax

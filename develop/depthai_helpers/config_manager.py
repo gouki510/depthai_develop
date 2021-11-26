@@ -16,7 +16,7 @@ DEPTHAI_VIDEOS.mkdir(exist_ok=True)
 
 class ConfigManager:
     labels = ""
-    customFwCommit = ''
+    customFwCommit = ""
 
     def __init__(self, args):
         self.args = args
@@ -27,9 +27,16 @@ class ConfigManager:
         else:
             self.args.scale = dict(self.args.scale)
         if not self.useCamera and not self.args.sync:
-            print("[WARNING] When using video file as an input, it's highly recommended to run the demo with \"--sync\" flag")
-        if (Previews.left.name in self.args.cameraOrientation or Previews.right.name in self.args.cameraOrientation) and self.useDepth:
-            print("[WARNING] Changing mono cameras orientation may result in incorrect depth/disparity maps")
+            print(
+                '[WARNING] When using video file as an input, it\'s highly recommended to run the demo with "--sync" flag'
+            )
+        if (
+            Previews.left.name in self.args.cameraOrientation
+            or Previews.right.name in self.args.cameraOrientation
+        ) and self.useDepth:
+            print(
+                "[WARNING] Changing mono cameras orientation may result in incorrect depth/disparity maps"
+            )
 
     @property
     def debug(self):
@@ -50,9 +57,9 @@ class ConfigManager:
     @property
     def maxDisparity(self):
         maxDisparity = 95
-        if (self.args.extendedDisparity):
+        if self.args.extendedDisparity:
             maxDisparity *= 2
-        if (self.args.subpixel):
+        if self.args.subpixel:
             maxDisparity *= 32
 
         return maxDisparity
@@ -81,7 +88,10 @@ class ConfigManager:
     def getModelDir(self):
         if self.args.cnnPath:
             return self.args.cnnPath
-        if self.args.cnnModel is not None and (DEPTHAI_ZOO / self.args.cnnModel).exists():
+        if (
+            self.args.cnnModel is not None
+            and (DEPTHAI_ZOO / self.args.cnnModel).exists()
+        ):
             return DEPTHAI_ZOO / self.args.cnnModel
 
     def getColorMap(self):
@@ -116,7 +126,7 @@ class ConfigManager:
             return dai.MedianFilter.MEDIAN_OFF
 
     def getUsb2Mode(self):
-        if self.args['forceUsb2']:
+        if self.args["forceUsb2"]:
             cliPrint("FORCE USB2 MODE", PrintColors.WARNING)
             usb2Mode = True
         else:
@@ -134,20 +144,31 @@ class ConfigManager:
                 self.args.show.append(Previews.disparityColor.name)
             elif not self.lowBandwidth and Previews.depth.name not in self.args.show:
                 self.args.show.append(Previews.depth.name)
-            if self.args.camera == "left" and Previews.rectifiedLeft.name not in self.args.show:
+            if (
+                self.args.camera == "left"
+                and Previews.rectifiedLeft.name not in self.args.show
+            ):
                 self.args.show.append(Previews.rectifiedLeft.name)
-            if self.args.camera == "right" and Previews.rectifiedRight.name not in self.args.show:
+            if (
+                self.args.camera == "right"
+                and Previews.rectifiedRight.name not in self.args.show
+            ):
                 self.args.show.append(Previews.rectifiedRight.name)
         else:
             if self.args.camera == "left" and Previews.left.name not in self.args.show:
                 self.args.show.append(Previews.left.name)
-            if self.args.camera == "right" and Previews.right.name not in self.args.show:
+            if (
+                self.args.camera == "right"
+                and Previews.right.name not in self.args.show
+            ):
                 self.args.show.append(Previews.right.name)
 
     def adjustParamsToDevice(self, device):
         deviceInfo = device.getDeviceInfo()
         cams = device.getConnectedCameras()
-        depthEnabled = dai.CameraBoardSocket.LEFT in cams and dai.CameraBoardSocket.RIGHT in cams
+        depthEnabled = (
+            dai.CameraBoardSocket.LEFT in cams and dai.CameraBoardSocket.RIGHT in cams
+        )
 
         if not depthEnabled:
             if not self.args.disableDepth:
@@ -156,9 +177,9 @@ class ConfigManager:
             if self.args.spatialBoundingBox:
                 print("Disabling spatial bounding boxes...")
             self.args.spatialBoundingBox = False
-            if self.args.camera != 'color':
+            if self.args.camera != "color":
                 print("Switching source to RGB camera...")
-            self.args.camera = 'color'
+            self.args.camera = "color"
             updatedShowArg = []
             for name in self.args.show:
                 if name in ("nnInput", "color"):
@@ -172,24 +193,41 @@ class ConfigManager:
 
         if self.args.bandwidth == "auto":
             if deviceInfo.desc.protocol != dai.XLinkProtocol.X_LINK_USB_VSC:
-                print("Enabling low-bandwidth mode due to connection mode... (protocol: {})".format(deviceInfo.desc.protocol))
+                print(
+                    "Enabling low-bandwidth mode due to connection mode... (protocol: {})".format(
+                        deviceInfo.desc.protocol
+                    )
+                )
                 self.args.bandwidth = "low"
-            elif device.getUsbSpeed() not in [dai.UsbSpeed.SUPER, dai.UsbSpeed.SUPER_PLUS]:
-                print("Enabling low-bandwidth mode due to low USB speed... (speed: {})".format(device.getUsbSpeed()))
+            elif device.getUsbSpeed() not in [
+                dai.UsbSpeed.SUPER,
+                dai.UsbSpeed.SUPER_PLUS,
+            ]:
+                print(
+                    "Enabling low-bandwidth mode due to low USB speed... (speed: {})".format(
+                        device.getUsbSpeed()
+                    )
+                )
                 self.args.bandwidth = "low"
             else:
                 self.args.bandwidth = "high"
 
-
     def linuxCheckApplyUsbRules(self):
-        if platform.system() == 'Linux':
-            ret = subprocess.call(['grep', '-irn', 'ATTRS{idVendor}=="03e7"', '/etc/udev/rules.d'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if(ret != 0):
+        if platform.system() == "Linux":
+            ret = subprocess.call(
+                ["grep", "-irn", 'ATTRS{idVendor}=="03e7"', "/etc/udev/rules.d"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if ret != 0:
                 cliPrint("\nWARNING: Usb rules not found", PrintColors.WARNING)
-                cliPrint("\nSet rules: \n"
-                """echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="03e7", MODE="0666"' | sudo tee /etc/udev/rules.d/80-movidius.rules \n"""
-                "sudo udevadm control --reload-rules && sudo udevadm trigger \n"
-                "Disconnect/connect usb cable on host! \n", PrintColors.RED)
+                cliPrint(
+                    "\nSet rules: \n"
+                    """echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="03e7", MODE="0666"' | sudo tee /etc/udev/rules.d/80-movidius.rules \n"""
+                    "sudo udevadm control --reload-rules && sudo udevadm trigger \n"
+                    "Disconnect/connect usb cable on host! \n",
+                    PrintColors.RED,
+                )
                 os._exit(1)
 
     def getCountLabel(self, nnetManager):
@@ -200,30 +238,40 @@ class ConfigManager:
             obj = nnetManager.getLabelText(int(self.args.countLabel)).lower()
             print(f"Counting number of {obj} in the frame")
             return obj
-        else: return self.args.countLabel.lower()
+        else:
+            return self.args.countLabel.lower()
 
     @property
     def leftCameraEnabled(self):
-        return (self.args.camera == Previews.left.name and self.useNN) or \
-               Previews.left.name in self.args.show or \
-               Previews.rectifiedLeft.name in self.args.show or \
-               self.useDepth
+        return (
+            (self.args.camera == Previews.left.name and self.useNN)
+            or Previews.left.name in self.args.show
+            or Previews.rectifiedLeft.name in self.args.show
+            or self.useDepth
+        )
 
     @property
     def rightCameraEnabled(self):
-        return (self.args.camera == Previews.right.name and self.useNN) or \
-               Previews.right.name in self.args.show or \
-               Previews.rectifiedRight.name in self.args.show or \
-               self.useDepth
+        return (
+            (self.args.camera == Previews.right.name and self.useNN)
+            or Previews.right.name in self.args.show
+            or Previews.rectifiedRight.name in self.args.show
+            or self.useDepth
+        )
 
     @property
     def rgbCameraEnabled(self):
-        return (self.args.camera == Previews.color.name and self.useNN) or \
-               Previews.color.name in self.args.show
+        return (
+            self.args.camera == Previews.color.name and self.useNN
+        ) or Previews.color.name in self.args.show
 
     @property
     def inputSize(self):
-        return tuple(map(int, self.args.cnnInputSize.split('x'))) if self.args.cnnInputSize else None
+        return (
+            tuple(map(int, self.args.cnnInputSize.split("x")))
+            if self.args.cnnInputSize
+            else None
+        )
 
     @property
     def previewSize(self):
@@ -247,5 +295,3 @@ class ConfigManager:
     def dispMultiplier(self):
         val = 255 / self.maxDisparity
         return val
-
-

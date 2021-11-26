@@ -6,12 +6,14 @@ try:
     import open3d as o3d
 except ImportError:
     traceback.print_exc()
-    print("Importing open3d failed, please run the following command or visit https://pypi.org/project/open3d/")
+    print(
+        "Importing open3d failed, please run the following command or visit https://pypi.org/project/open3d/"
+    )
     print()
-    print(sys.executable  + " -m pip install open3d")
+    print(sys.executable + " -m pip install open3d")
 
 
-class PointCloudVisualizer():
+class PointCloudVisualizer:
     def __init__(self, intrinsic_matrix, width, height):
         self.depth_map = None
         self.rgb = None
@@ -21,23 +23,23 @@ class PointCloudVisualizer():
         # self.rgbd_mode = rgbd_mode
         # self.pinhole_camera_intrinsic = o3d.io.read_pinhole_camera_intrinsic(intrinsic_file)
 
-        self.pinhole_camera_intrinsic = o3d.camera.PinholeCameraIntrinsic(width,
-                                                                         height,
-                                                                         intrinsic_matrix[0][0],
-                                                                         intrinsic_matrix[1][1],
-                                                                         intrinsic_matrix[0][2],
-                                                                         intrinsic_matrix[1][2])
+        self.pinhole_camera_intrinsic = o3d.camera.PinholeCameraIntrinsic(
+            width,
+            height,
+            intrinsic_matrix[0][0],
+            intrinsic_matrix[1][1],
+            intrinsic_matrix[0][2],
+            intrinsic_matrix[1][2],
+        )
         self.vis = o3d.visualization.Visualizer()
         self.vis.create_window()
         self.isstarted = False
-
 
         # intrinsic = o3d.camera.PinholeCameraIntrinsic()
         # print(str(type(intrinsic)))
         # open3d::camera::PinholeCameraIntrinsic instrinsic;  # TODO: Try this
         # instrinsic.SetIntrinsics(480, 272, 282.15, 321.651, 270, 153.9);
         # self.vis.add_geometry(self.pcl)
-
 
     # def dummy_pcl(self):
     #     x = np.linspace(-3, 3, 401)
@@ -57,20 +59,27 @@ class PointCloudVisualizer():
         self.rgb = rgb
         rgb_o3d = o3d.geometry.Image(self.rgb)
         depth_o3d = o3d.geometry.Image(self.depth_map)
-        rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(rgb_o3d, depth_o3d)
+        rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
+            rgb_o3d, depth_o3d
+        )
         if self.pcl is None:
-            self.pcl = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, self.pinhole_camera_intrinsic)
+            self.pcl = o3d.geometry.PointCloud.create_from_rgbd_image(
+                rgbd_image, self.pinhole_camera_intrinsic
+            )
         else:
-            pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, self.pinhole_camera_intrinsic)
+            pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
+                rgbd_image, self.pinhole_camera_intrinsic
+            )
             self.pcl.points = pcd.points
             self.pcl.colors = pcd.colors
         return self.pcl
 
-
     def visualize_pcd(self):
         if not self.isstarted:
             self.vis.add_geometry(self.pcl)
-            origin = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.3, origin=[0, 0, 0])
+            origin = o3d.geometry.TriangleMesh.create_coordinate_frame(
+                size=0.3, origin=[0, 0, 0]
+            )
             self.vis.add_geometry(origin)
             self.isstarted = True
         else:
@@ -101,8 +110,9 @@ class PointCloudVisualizer():
         self.vis.destroy_window()
 
 
-
-def depthmap_to_projection(depth_map, intrinsic, stride = 1, depth_scale = 1, depth_trunc = 96):
+def depthmap_to_projection(
+    depth_map, intrinsic, stride=1, depth_scale=1, depth_trunc=96
+):
     # o3d_intrinsic_matrix = o3d.camera.PinholeCameraIntrinsicParameters()
     # pinhole_camera_intrinsic
     # o3d_intrinsic_matrix.set_intrinsics(depth_map.shape[1], depth_map.shape[0],
@@ -119,6 +129,7 @@ def depthmap_to_projection(depth_map, intrinsic, stride = 1, depth_scale = 1, de
 
     return pcd
 
+
 def visualize(pcd):
 
     # o3d.visualization.draw_geometries([pcd], zoom=0.3412,
@@ -127,6 +138,7 @@ def visualize(pcd):
     #                               up=[-0.0694, -0.9768, 0.2024])
     # downpcd = pcd.voxel_down_sample(voxel_size=0.05)
     o3d.visualization.draw_geometries([pcd])
+
 
 # def depthmap_to_projection(depth_map, M): # can add step size which does subsampling
 #     c_x = M[2,2]
@@ -144,5 +156,3 @@ def visualize(pcd):
 #             y = (v - c_y) * z / f_y
 #             point_cloud.append((x,y,z))
 #     return point_cloud
-            
-

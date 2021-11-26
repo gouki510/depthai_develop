@@ -18,7 +18,7 @@ class RangeFloat(object):
         yield self
 
     def __str__(self):
-        return '[{0},{1}]'.format(self.start, self.end)
+        return "[{0},{1}]".format(self.start, self.end)
 
 
 PrintColors = SimpleNamespace(

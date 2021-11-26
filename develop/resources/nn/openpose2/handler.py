@@ -3,15 +3,88 @@ import numpy as np
 
 from depthai_sdk import toTensorResult, Previews
 
-keypointsMapping = ['Nose', 'Neck', 'R-Sho', 'R-Elb', 'R-Wr', 'L-Sho', 'L-Elb', 'L-Wr', 'R-Hip', 'R-Knee', 'R-Ank',
-                    'L-Hip', 'L-Knee', 'L-Ank', 'R-Eye', 'L-Eye', 'R-Ear', 'L-Ear']
-POSE_PAIRS = [[1, 2], [1, 5], [2, 3], [3, 4], [5, 6], [6, 7], [1, 8], [8, 9], [9, 10], [1, 11], [11, 12], [12, 13],
-              [1, 0], [0, 14], [14, 16], [0, 15], [15, 17], [2, 17], [5, 16]]
-mapIdx = [[31, 32], [39, 40], [33, 34], [35, 36], [41, 42], [43, 44], [19, 20], [21, 22], [23, 24], [25, 26], [27, 28],
-          [29, 30], [47, 48], [49, 50], [53, 54], [51, 52], [55, 56], [37, 38], [45, 46]]
-colors = [[0, 100, 255], [0, 100, 255], [0, 255, 255], [0, 100, 255], [0, 255, 255], [0, 100, 255], [0, 255, 0],
-          [255, 200, 100], [255, 0, 255], [0, 255, 0], [255, 200, 100], [255, 0, 255], [0, 0, 255], [255, 0, 0],
-          [200, 200, 0], [255, 0, 0], [200, 200, 0], [0, 0, 0]]
+keypointsMapping = [
+    "Nose",
+    "Neck",
+    "R-Sho",
+    "R-Elb",
+    "R-Wr",
+    "L-Sho",
+    "L-Elb",
+    "L-Wr",
+    "R-Hip",
+    "R-Knee",
+    "R-Ank",
+    "L-Hip",
+    "L-Knee",
+    "L-Ank",
+    "R-Eye",
+    "L-Eye",
+    "R-Ear",
+    "L-Ear",
+]
+POSE_PAIRS = [
+    [1, 2],
+    [1, 5],
+    [2, 3],
+    [3, 4],
+    [5, 6],
+    [6, 7],
+    [1, 8],
+    [8, 9],
+    [9, 10],
+    [1, 11],
+    [11, 12],
+    [12, 13],
+    [1, 0],
+    [0, 14],
+    [14, 16],
+    [0, 15],
+    [15, 17],
+    [2, 17],
+    [5, 16],
+]
+mapIdx = [
+    [31, 32],
+    [39, 40],
+    [33, 34],
+    [35, 36],
+    [41, 42],
+    [43, 44],
+    [19, 20],
+    [21, 22],
+    [23, 24],
+    [25, 26],
+    [27, 28],
+    [29, 30],
+    [47, 48],
+    [49, 50],
+    [53, 54],
+    [51, 52],
+    [55, 56],
+    [37, 38],
+    [45, 46],
+]
+colors = [
+    [0, 100, 255],
+    [0, 100, 255],
+    [0, 255, 255],
+    [0, 100, 255],
+    [0, 255, 255],
+    [0, 100, 255],
+    [0, 255, 0],
+    [255, 200, 100],
+    [255, 0, 255],
+    [0, 255, 0],
+    [255, 200, 100],
+    [255, 0, 255],
+    [0, 0, 255],
+    [255, 0, 0],
+    [200, 200, 0],
+    [255, 0, 0],
+    [200, 200, 0],
+    [0, 0, 0],
+]
 
 
 def getKeypoints(probMap, threshold=0.2):
@@ -24,7 +97,9 @@ def getKeypoints(probMap, threshold=0.2):
         contours, _ = cv2.findContours(mapMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     except:
         # OpenCV3.x
-        _, contours, _ = cv2.findContours(mapMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        _, contours, _ = cv2.findContours(
+            mapMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+        )
 
     for cnt in contours:
         blobMask = np.zeros(mapMask.shape)
@@ -55,7 +130,7 @@ def getValidPairs(outputs, w, h, detectedKeypoints):
         nA = len(candA)
         nB = len(candB)
 
-        if (nA != 0 and nB != 0):
+        if nA != 0 and nB != 0:
             validPair = np.zeros((0, 3))
             for i in range(nA):
                 maxJ = -1
@@ -68,22 +143,40 @@ def getValidPairs(outputs, w, h, detectedKeypoints):
                         d_ij = d_ij / norm
                     else:
                         continue
-                    interp_coord = list(zip(np.linspace(candA[i][0], candB[j][0], num=nInterpSamples),
-                                            np.linspace(candA[i][1], candB[j][1], num=nInterpSamples)))
+                    interp_coord = list(
+                        zip(
+                            np.linspace(candA[i][0], candB[j][0], num=nInterpSamples),
+                            np.linspace(candA[i][1], candB[j][1], num=nInterpSamples),
+                        )
+                    )
                     pafInterp = []
                     for k in range(len(interp_coord)):
-                        pafInterp.append([pafA[int(round(interp_coord[k][1])), int(round(interp_coord[k][0]))],
-                                           pafB[int(round(interp_coord[k][1])), int(round(interp_coord[k][0]))]])
+                        pafInterp.append(
+                            [
+                                pafA[
+                                    int(round(interp_coord[k][1])),
+                                    int(round(interp_coord[k][0])),
+                                ],
+                                pafB[
+                                    int(round(interp_coord[k][1])),
+                                    int(round(interp_coord[k][0])),
+                                ],
+                            ]
+                        )
                     pafScores = np.dot(pafInterp, d_ij)
                     avgPafScore = sum(pafScores) / len(pafScores)
 
-                    if (len(np.where(pafScores > pafScoreTh)[0]) / nInterpSamples) > confTh:
+                    if (
+                        len(np.where(pafScores > pafScoreTh)[0]) / nInterpSamples
+                    ) > confTh:
                         if avgPafScore > maxScore:
                             maxJ = j
                             maxScore = avgPafScore
                             found = 1
                 if found:
-                    validPair = np.append(validPair, [[candA[i][3], candB[maxJ][3], maxScore]], axis=0)
+                    validPair = np.append(
+                        validPair, [[candA[i][3], candB[maxJ][3], maxScore]], axis=0
+                    )
 
             validPairs.append(validPair)
         else:
@@ -112,14 +205,18 @@ def getPersonwiseKeypoints(validPairs, invalidPairs, keypointsList):
 
                 if found:
                     personwiseKeypoints[personIdx][indexB] = partBs[i]
-                    personwiseKeypoints[personIdx][-1] += keypointsList[partBs[i].astype(int), 2] + validPairs[k][i][
-                        2]
+                    personwiseKeypoints[personIdx][-1] += (
+                        keypointsList[partBs[i].astype(int), 2] + validPairs[k][i][2]
+                    )
 
                 elif not found and k < 17:
                     row = -1 * np.ones(19)
                     row[indexA] = partAs[i]
                     row[indexB] = partBs[i]
-                    row[-1] = sum(keypointsList[validPairs[k][i, :2].astype(int), 2]) + validPairs[k][i][2]
+                    row[-1] = (
+                        sum(keypointsList[validPairs[k][i, :2].astype(int), 2])
+                        + validPairs[k][i][2]
+                    )
                     personwiseKeypoints = np.vstack([personwiseKeypoints, row])
     return personwiseKeypoints
 
@@ -130,7 +227,7 @@ detectedKeypoints = []
 
 
 def decode(nnManager, packet):
-    outputs = toTensorResult(packet)["Openpose/concat_stage7"].astype('float32')
+    outputs = toTensorResult(packet)["Openpose/concat_stage7"].astype("float32")
     w, h = nnManager.inputSize
 
     detectedKeypoints = []
@@ -151,7 +248,9 @@ def decode(nnManager, packet):
         detectedKeypoints.append(keypointsWithId)
 
     validPairs, invalidPairs = getValidPairs(outputs, w, h, detectedKeypoints)
-    personwiseKeypoints = getPersonwiseKeypoints(validPairs, invalidPairs, keypointsList)
+    personwiseKeypoints = getPersonwiseKeypoints(
+        validPairs, invalidPairs, keypointsList
+    )
     keypointsLimbs = [detectedKeypoints, personwiseKeypoints, keypointsList]
 
     return keypointsLimbs
@@ -164,13 +263,18 @@ def draw(nnManager, keypointsLimbs, frames):
             offsetW = int(frame.shape[1] - nnManager.inputSize[0] * scaleFactor) // 2
 
             def scale(point):
-                return int(point[0] * scaleFactor) + offsetW, int(point[1] * scaleFactor)
+                return (
+                    int(point[0] * scaleFactor) + offsetW,
+                    int(point[1] * scaleFactor),
+                )
+
         elif name in (Previews.color.name, Previews.nnInput.name, "host"):
             scaleH = frame.shape[0] / nnManager.inputSize[1]
             scaleW = frame.shape[1] / nnManager.inputSize[0]
 
             def scale(point):
                 return int(point[0] * scaleW), int(point[1] * scaleH)
+
         else:
             continue
 
@@ -181,7 +285,14 @@ def draw(nnManager, keypointsLimbs, frames):
 
             for i in range(nPoints):
                 for j in range(len(detectedKeypoints[i])):
-                    cv2.circle(frame, scale(detectedKeypoints[i][j][0:2]), 5, colors[i], -1, cv2.LINE_AA)
+                    cv2.circle(
+                        frame,
+                        scale(detectedKeypoints[i][j][0:2]),
+                        5,
+                        colors[i],
+                        -1,
+                        cv2.LINE_AA,
+                    )
             for i in range(17):
                 for n in range(len(personwiseKeypoints)):
                     index = personwiseKeypoints[n][np.array(POSE_PAIRS[i])]
@@ -189,5 +300,11 @@ def draw(nnManager, keypointsLimbs, frames):
                         continue
                     B = np.int32(keypointsList[index.astype(int), 0])
                     A = np.int32(keypointsList[index.astype(int), 1])
-                    cv2.line(frame, scale((B[0], A[0])), scale((B[1], A[1])), colors[i], 3, cv2.LINE_AA)
-
+                    cv2.line(
+                        frame,
+                        scale((B[0], A[0])),
+                        scale((B[1], A[1])),
+                        colors[i],
+                        3,
+                        cv2.LINE_AA,
+                    )

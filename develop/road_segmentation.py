@@ -77,6 +77,8 @@ def run_all():
                     result_data = pickle.load(f)
                     # 人検出ボックスの4点の座標をファイルから読み込む
                     output_dic = result_data.output_bb()
+                    # segmentation 情報をresultdataに格納
+                    result_data.collect_segmentaion(road_decoded)
                     for label in output_dic.keys():
                         xmin, xmax, ymin, ymax = (
                             output_dic[label][0],
@@ -84,11 +86,12 @@ def run_all():
                             output_dic[label][2],
                             output_dic[label][3],
                         )
-                        # print("label:{},xmax:{}, xmin:{}, ymax:{}, ymin:{}".format(label,xmin,xmax,ymin,ymax))
                         # 人検出ボックスの追加
                         bbox = utils.frameNorm(
                             nm._normFrame(frame), [xmin, ymin, xmax, ymax]
                         )
+                        result_data.cal_on_road()
+                        print("label:{},xmin:{}, ymin:{}, xmax:{}, ymax:{}".format(label,bbox[0],bbox[1],bbox[2],bbox[3]))
                         cv2.rectangle(
                             frame,
                             (bbox[0], bbox[1]),
