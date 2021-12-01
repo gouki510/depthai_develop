@@ -73,7 +73,7 @@ def run_all():
             road_decoded = decode(nm.outputQueue.get())
             # ロード・セグメンテーションの結果を画像に保存
             im = Image.fromarray(road_decoded)
-            im.save("test.png")
+            im.save("result_roadseg.png")
 
             draw(road_decoded, frame)
             fps.drawFps(frame, "color")
