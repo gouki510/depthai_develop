@@ -17,6 +17,10 @@ from depthai_sdk import utils
 
 import os
 
+from numpy.core.records import array
+
+from PIL import Image
+
 nn_shape = 896, 512
 
 result_data = {}
@@ -67,6 +71,10 @@ def run_all():
             frame = pv.get(Previews.color.name)
 
             road_decoded = decode(nm.outputQueue.get())
+            # ロード・セグメンテーションの結果を画像に保存
+            im = Image.fromarray(road_decoded)
+            im.save("test.png")
+
             draw(road_decoded, frame)
             fps.drawFps(frame, "color")
 
