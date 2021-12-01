@@ -16,6 +16,7 @@ from depthai_sdk import (
 from depthai_sdk import utils
 
 import os
+from numpy.core.numeric import ones
 
 from numpy.core.records import array
 
@@ -99,15 +100,17 @@ def run_all():
                             nm._normFrame(frame), [xmin, ymin, xmax, ymax]
                         )
                         result_data.cal_on_road()
+                        print("on_load:{}", result_data.on_road[label])
                         print("label:{},xmin:{}, ymin:{}, xmax:{}, ymax:{}".format(label,bbox[0],bbox[1],bbox[2],bbox[3]))
                         cv2.rectangle(
                             frame,
                             (bbox[0], bbox[1]),
                             (bbox[2], bbox[3]),
-                            (0, 255, 0),
+                            (0, 0, 255) if result_data.on_road[label] == "green" else (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
                             3,
                         )
-                # フレーム完成・描画
+
+            # フレーム完成・描画
             cv2.imshow("color", frame)
 
             if cv2.waitKey(1) == ord("q"):
