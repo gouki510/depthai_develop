@@ -107,7 +107,4 @@ def run_all():
 
 
 if __name__ == "__main__":
-    while True:
-        if os.path.isfile("./data/rec_pos.txt"):
-            break
     run_all()
