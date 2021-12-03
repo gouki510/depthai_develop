@@ -9,18 +9,21 @@ import platform
 import numpy as np
 from myutils import ResultData
 import pickle
-
 from depthai_helpers.arg_manager import parseArgs
 from depthai_helpers.config_manager import ConfigManager, DEPTHAI_ZOO, DEPTHAI_VIDEOS
 from depthai_helpers.version_check import checkRequirementsVersion
 from depthai_sdk import FPSHandler, loadModule, getDeviceInfo, downloadYTVideo, Previews
-from depthai_sdk.managers import (
+from depthai_sdk import (
     NNetManager,
     PreviewManager,
     PipelineManager,
     EncodingManager,
     BlobManager,
 )
+import depthai_sdk.managers as nm
+print('-'*100)
+print(nm.__path__)
+import blobconverter
 
 DISP_CONF_MIN = int(os.getenv("DISP_CONF_MIN", 0))
 DISP_CONF_MAX = int(os.getenv("DISP_CONF_MAX", 255))
@@ -142,6 +145,20 @@ def run_all():
         )
     pm = PipelineManager(openvinoVersion)
 
+    pm2 = PipelineManager()
+    nm2 = NNetManager(inputSize=(896, 512))
+    pm2.setNnManager(nm2)
+    pm2.addNn(
+        nm2.createNN(
+            pm2.pipeline,
+            pm2.nodes,
+            blobconverter.from_zoo(name="road-segmentation-adas-0001", shaves=6),
+        ),
+        sync=True,
+    )
+    fps2 = FPSHandler()
+    pv2 = PreviewManager(display=[Previews.color.name], fpsHandler=fps2)
+
     if conf.args.xlinkChunkSize is not None:
         pm.setXlinkChunkSize(conf.args.xlinkChunkSize)
 
@@ -164,6 +181,11 @@ def run_all():
         deviceInfo,
         usb2Mode=conf.args.usbSpeed == "usb2",
     ) as device:
+      with dai.Device(pm2.pipeline) as device2:
+        print('-'*100)
+        print(device2)
+        nm2.createQueues(device2)
+        pv2.createQueues(device2)
         if deviceInfo.desc.protocol == dai.XLinkProtocol.X_LINK_USB_VSC:
             print("USB Connection speed: {}".format(device.getUsbSpeed()))
         conf.adjustParamsToDevice(device)
@@ -460,7 +482,7 @@ def run_all():
                             ymax = nnData[object_idx].ymax
                             ymin = nnData[object_idx].ymin
                             result_data.collect_bb(label, xmin, xmax, ymin, ymax)
-                            print(result_data.output_bb())
+                            #print(result_data.output_bb())
                         pickle.dump(result_data, f)
 
                 if conf.useCamera:

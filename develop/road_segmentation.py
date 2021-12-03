@@ -12,7 +12,9 @@ from depthai_sdk import (
     FPSHandler,
     toTensorResult,
 )
-
+import depthai_sdk 
+print('-'*100)
+print(depthai_sdk.__path__)
 from depthai_sdk import utils
 
 import os
@@ -74,7 +76,8 @@ def run_all():
             if os.path.getsize("data/data.pickle") > 0:
                 # result_data の読み込み
                 with open("data/data.pickle", "rb") as f:
-                    result_data = pickle.load(f)
+                    unpickler = pickle.Unpickler(f)
+                    result_data = unpickler.load()
                     # 人検出ボックスの4点の座標をファイルから読み込む
                     output_dic = result_data.output_bb()
                     # segmentation 情報をresultdataに格納
@@ -91,7 +94,7 @@ def run_all():
                             nm._normFrame(frame), [xmin, ymin, xmax, ymax]
                         )
                         result_data.cal_on_road()
-                        print("label:{},xmin:{}, ymin:{}, xmax:{}, ymax:{}".format(label,bbox[0],bbox[1],bbox[2],bbox[3]))
+                        #print("label:{},xmin:{}, ymin:{}, xmax:{}, ymax:{}".format(label,bbox[0],bbox[1],bbox[2],bbox[3]))
                         cv2.rectangle(
                             frame,
                             (bbox[0], bbox[1]),
@@ -107,7 +110,4 @@ def run_all():
 
 
 if __name__ == "__main__":
-    while True:
-        if os.path.isfile("./data/rec_pos.txt"):
-            break
     run_all()
