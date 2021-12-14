@@ -16,10 +16,13 @@ from depthai_sdk import (
 from depthai_sdk import utils
 
 import os
+from numpy.core.numeric import ones
+
+from numpy.core.records import array
+
+from PIL import Image
 
 nn_shape = 896, 512
-
-result_data = {}
 
 
 def decode(packet):
@@ -65,15 +68,17 @@ def run_all():
             fps.tick("color")
             pv.prepareFrames(blocking=True)
             frame = pv.get(Previews.color.name)
-
             road_decoded = decode(nm.outputQueue.get())
+            # ロード・セグメンテーションの結果を画像に保存
+            im = Image.fromarray(road_decoded)
+            im.save("result_roadseg.png")
+
             draw(road_decoded, frame)
             fps.drawFps(frame, "color")
 
-            # pickleが空だとエラーがでるのでif分岐
-            if os.path.getsize("data/data.pickle") > 0:
-                # result_data の読み込み
-                with open("data/data.pickle", "rb") as f:
+            # result_data の読み込み
+            with open("data/data.pickle", "rb") as f:
+                try:
                     result_data = pickle.load(f)
                     # 人検出ボックスの4点の座標をファイルから読み込む
                     output_dic = result_data.output_bb()
@@ -91,15 +96,24 @@ def run_all():
                             nm._normFrame(frame), [xmin, ymin, xmax, ymax]
                         )
                         result_data.cal_on_road()
-                        print("label:{},xmin:{}, ymin:{}, xmax:{}, ymax:{}".format(label,bbox[0],bbox[1],bbox[2],bbox[3]))
+                        print("on_load:{}", result_data.on_road[label])
+                        print(
+                            "label:{},xmin:{}, ymin:{}, xmax:{}, ymax:{}".format(
+                                label, bbox[0], bbox[1], bbox[2], bbox[3]
+                            )
+                        )
                         cv2.rectangle(
                             frame,
                             (bbox[0], bbox[1]),
                             (bbox[2], bbox[3]),
-                            (0, 255, 0),
+                            (0, 0, 255)
+                            if result_data.on_road[label] == "green"
+                            else (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
                             3,
                         )
-                # フレーム完成・描画
+                except:
+                    pass
+            # フレーム完成・描画
             cv2.imshow("color", frame)
 
             if cv2.waitKey(1) == ord("q"):
@@ -107,7 +121,4 @@ def run_all():
 
 
 if __name__ == "__main__":
-    while True:
-        if os.path.isfile("./data/rec_pos.txt"):
-            break
     run_all()

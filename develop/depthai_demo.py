@@ -380,7 +380,8 @@ def run_all():
 
         try:
             while True:
-
+                 #fps調整用
+                time.sleep(3.0/7.0)
                 fps.nextIter()
                 callbacks.onIter(**locals())
                 if conf.useCamera:
@@ -424,7 +425,6 @@ def run_all():
 
                     if not conf.args.sync:
                         hostFrame = rawHostFrame
-                        print(type(hostFrame))
                     fps.tick("host")
 
                 if conf.useNN:
@@ -453,7 +453,7 @@ def run_all():
                         for object_idx in range(len(nnData)):
                             label = nnManager.getLabelText(nnData[object_idx].label)
                             # personが複数人になったときはperson+object_idx
-                            if label in result_data.bboxs.keys():
+                            if label in result_data.temp_bboxs.keys():
                                 label = label + str(object_idx)
                             xmax = nnData[object_idx].xmax
                             xmin = nnData[object_idx].xmin
@@ -461,6 +461,10 @@ def run_all():
                             ymin = nnData[object_idx].ymin
                             result_data.collect_bb(label, xmin, xmax, ymin, ymax)
                             print(result_data.output_bb())
+                        pickle.dump(result_data, f)
+                else:
+                    with open("data/data.pickle", "wb") as f:
+                        result_data = ResultData()
                         pickle.dump(result_data, f)
 
                 if conf.useCamera:
@@ -671,14 +675,6 @@ def run_all():
                     fps.drawFps(debugHostFrame, "host")
                     cv2.imshow("host", debugHostFrame)
 
-                if logOut:
-                    logs = logOut.tryGetAll()
-                    for log in logs:
-                        printSysInfo(log)
-
-                key = cv2.waitKey(1)
-                if key == ord("q"):
-                    break
                 elif key == ord("m"):
                     nextFilter = next(medianFilters)
                     pm.updateDepthConfig(device, median=nextFilter)
