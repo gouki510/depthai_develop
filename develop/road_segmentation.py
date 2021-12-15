@@ -40,7 +40,7 @@ def draw(data, frame):
     cv2.addWeighted(frame, 1, cv2.resize(data, frame.shape[:2][::-1]), 0.2, 0, frame)
 
 def beep(freq, dur=100):
-    os.system('play -n synth %s sin %s' % (dur/1000, freq))
+    out = os.system('play -n synth %s sin %s' % (dur/1000, freq))
 
 def run_all():
 
@@ -100,23 +100,27 @@ def run_all():
                             output_dic[label][3],
                         )
                         depth = depth_dic[label]
-                        #print(depth)
+                        # print(depth)
                         # 人検出ボックスの追加
                         bbox = utils.frameNorm(
                             nm._normFrame(frame), [xmin, ymin, xmax, ymax]
                         )
+                        if label == "car":
+                            continue
+
                         result_data.cal_on_road()
-                        """ print("on_load:{}", result_data.on_road[label])
+                        
+                        print("on_load:{}", result_data.on_road[label])
                         print(
                             "label:{},xmin:{}, ymin:{}, xmax:{}, ymax:{}".format(
                                 label, bbox[0], bbox[1], bbox[2], bbox[3]
                             )
-                        ) """
+                        )
                         if depth < 3000:
                             count += 1
                             count = count % 2
                         else:
-                            count = 1
+                            count = 0
                         if count == 1:
                             cv2.rectangle(
                                 frame,
@@ -127,7 +131,8 @@ def run_all():
                                 else (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
                                 3,
                             )
-                            beep(2000,1000)
+                            if result_data.on_road[label] == "green":
+                                beep(2000,1000)
                 except:
                     pass
             # フレーム完成・描画
