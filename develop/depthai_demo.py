@@ -9,6 +9,7 @@ import platform
 import numpy as np
 from myutils import ResultData
 import pickle
+import time
 
 from depthai_helpers.arg_manager import parseArgs
 from depthai_helpers.config_manager import ConfigManager, DEPTHAI_ZOO, DEPTHAI_VIDEOS
@@ -453,14 +454,19 @@ def run_all():
                         for object_idx in range(len(nnData)):
                             label = nnManager.getLabelText(nnData[object_idx].label)
                             # personが複数人になったときはperson+object_idx
-                            if label in result_data.temp_bboxs.keys():
-                                label = label + str(object_idx)
+                            """ if label in result_data.temp_bboxs.keys():
+                                label = label + str(object_idx) """
                             xmax = nnData[object_idx].xmax
                             xmin = nnData[object_idx].xmin
                             ymax = nnData[object_idx].ymax
                             ymin = nnData[object_idx].ymin
+
+                            spCor_z = nnData[object_idx].spatialCoordinates.z
+
                             result_data.collect_bb(label, xmin, xmax, ymin, ymax)
-                            print(result_data.output_bb())
+                            result_data.collect_depth(label, spCor_z)
+                            #print(result_data.depth[label])
+                            #print(result_data.output_bb())
                         pickle.dump(result_data, f)
                 else:
                     with open("data/data.pickle", "wb") as f:
@@ -674,6 +680,15 @@ def run_all():
                         nnManager.draw(debugHostFrame, nnData)
                     fps.drawFps(debugHostFrame, "host")
                     cv2.imshow("host", debugHostFrame)
+
+                if logOut:
+                    logs = logOut.tryGetAll()
+                    for log in logs:
+                        printSysInfo(log)
+
+                key = cv2.waitKey(1)
+                if key == ord("q"):
+                    break
 
                 elif key == ord("m"):
                     nextFilter = next(medianFilters)
