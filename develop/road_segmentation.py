@@ -22,6 +22,8 @@ from numpy.core.records import array
 
 from PIL import Image
 
+import jtalk
+
 nn_shape = 896, 512
 
 
@@ -116,23 +118,34 @@ def run_all():
                                 label, bbox[0], bbox[1], bbox[2], bbox[3]
                             )
                         )
-                        if depth < 3000:
-                            count += 1
-                            count = count % 2
+
+                        if result_data.on_road[label] == "green":
+                            if depth < 3000:
+                                count += 1
+                            else:
+                                count = 0
+                            if count % 2 == 1:
+                                cv2.rectangle(
+                                    frame,
+                                    (bbox[0], bbox[1]),
+                                    (bbox[2], bbox[3]),
+                                    (0, 0, 255)
+                                    if result_data.on_road[label] == "green"
+                                    else (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
+                                    3,
+                                )
+                            beep(2000,1000)
+                            jtalk.jtalk("歩行者に注意")
                         else:
-                            count = 0
-                        if count == 1:
                             cv2.rectangle(
-                                frame,
-                                (bbox[0], bbox[1]),
-                                (bbox[2], bbox[3]),
-                                (0, 0, 255)
-                                if result_data.on_road[label] == "green"
-                                else (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
-                                3,
-                            )
-                            if result_data.on_road[label] == "green":
-                                beep(2000,1000)
+                                    frame,
+                                    (bbox[0], bbox[1]),
+                                    (bbox[2], bbox[3]),
+                                    (0, 0, 255)
+                                    if result_data.on_road[label] == "green"
+                                    else (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
+                                    3,
+                                )
                 except:
                     pass
             # フレーム完成・描画
