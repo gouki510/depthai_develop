@@ -48,6 +48,7 @@ def run_all():
 
     # count : 物体が近づいた時にボックスを点滅させるため
     count = 0
+    count_car = 0
 
     # Start defining a pipeline
     pm = PipelineManager()
@@ -107,8 +108,6 @@ def run_all():
                         bbox = utils.frameNorm(
                             nm._normFrame(frame), [xmin, ymin, xmax, ymax]
                         )
-                        if label == "car":
-                            continue
 
                         result_data.cal_on_road()
                         
@@ -118,6 +117,36 @@ def run_all():
                                 label, bbox[0], bbox[1], bbox[2], bbox[3]
                             )
                         )
+
+                        if "car" in label:
+                            count_car += 1
+                            cv2.rectangle(
+                                frame,
+                                (bbox[0], bbox[1]),
+                                (bbox[2], bbox[3]),
+                                (0, 255, 0),
+                                3,
+                            )
+                            cv2.rectangle(
+                                frame,
+                                (bbox[0], bbox[1]),
+                                (bbox[2], bbox[1]-50),
+                                (0, 0, 255),
+                                thickness=-1,
+                            )
+                            cv2.rectangle(
+                                frame,
+                                (bbox[2], bbox[1]),
+                                (bbox[2]+50, bbox[3]),
+                                (0, 0, 255),
+                                thickness=-1,
+                            )
+                            if count_car % 10 == 0:
+                                count_car = 0
+                                jtalk.jtalk("飛び出し注意")
+                        
+                        if label != "person":
+                            continue
 
                         if result_data.on_road[label] == "green":
                             if depth < 3000:
@@ -142,9 +171,22 @@ def run_all():
                                     (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
                                     3,
                                 )
+                        
+                        cv2.putText(
+                                frame,
+                                text=label,
+                                org=(bbox[0],bbox[3]),
+                                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                fontScale=1,
+                                color=(0,0,255),
+                                thickness=2,
+                                lineType=cv2.LINE_4
+                            )
                 except:
                     pass
+            
             # フレーム完成・描画
+            cv2.namedWindow("road_segmentation", cv2.WINDOW_NORMAL)
             cv2.imshow("road_segmentation", frame)
 
             if cv2.waitKey(1) == ord("q"):
