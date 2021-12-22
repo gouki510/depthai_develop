@@ -129,9 +129,7 @@ def run_all():
                                     frame,
                                     (bbox[0], bbox[1]),
                                     (bbox[2], bbox[3]),
-                                    (0, 0, 255)
-                                    if result_data.on_road[label] == "green"
-                                    else (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
+                                    (0, 0, 255), # (B,G,R)
                                     3,
                                 )
                             beep(2000,1000)
@@ -141,9 +139,7 @@ def run_all():
                                     frame,
                                     (bbox[0], bbox[1]),
                                     (bbox[2], bbox[3]),
-                                    (0, 0, 255)
-                                    if result_data.on_road[label] == "green"
-                                    else (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
+                                    (0, 255, 0),  # 道路を緑に識別すると仮定。道路上にいる時は赤枠、それ以外は緑枠。
                                     3,
                                 )
                 except:
