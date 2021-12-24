@@ -39,7 +39,9 @@ class ResultData:
         for label,bbox in self.bboxs.items():
             bbox = self.frameNorm(bbox)
             xmin,xmax,ymin,ymax = bbox
-            roadtype = self.segmentation[511-ymin,int((xmin+xmax)/2),:] 
+            #roadtype = self.segmentation[511-ymin,int((xmin+xmax)/2),:] 
+            roadtype = self.segmentation[int(ymin),int(xmax),:] 
+            #roadtype = self.segmentation[int((ymin+ymax)/2),int((xmin+xmax)/2),:] 
             if roadtype[0] == 255:
                 self.on_road[label] = "red"
             elif roadtype[1] == 255:

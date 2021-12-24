@@ -148,8 +148,11 @@ def run_all():
                         if label != "person":
                             continue
 
+                        print(label)
+                        print(result_data.on_road[label])
+                        print(depth)
                         if result_data.on_road[label] == "green":
-                            if depth < 3000:
+                            if depth < 8000:
                                 count += 1
                             else:
                                 count = 0
